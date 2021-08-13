@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Gate;
 
 class UserController extends Controller
 {
@@ -17,6 +18,7 @@ class UserController extends Controller
     public function __construct(User $user)
     {
         $this->model = $user;
+        $this->middleware('can:users');
     }
 
     /**
@@ -26,7 +28,7 @@ class UserController extends Controller
      */
     public function index(): AnonymousResourceCollection
     {
-        $users = $this->model->paginate();
+        $users = $this->model->with('permissions')->paginate();
 
         return UserResource::collection($users);
     }
@@ -55,7 +57,7 @@ class UserController extends Controller
      */
     public function show(string $identify): UserResource
     {
-        $user = $this->model->where('uuid', $identify)->firstOrFail();
+        $user = $this->model->with('permissions')->where('uuid', $identify)->firstOrFail();
 
         return new UserResource($user);
     }
